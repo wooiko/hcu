@@ -38,7 +38,8 @@ void setup()
 
 	lcd.init();
 	lcd.backlight(); //Включаем подсветку дисплея
-	lcd.print(hcuVersion);
+	//lcd.print(hcuVersion);
+	lcdPrint(hcuVersion, 0, 0);
 
 	time.begin(); //инициализация таймера
 	//time.settime(0, 38, 21, 11, 2, 19, 1); //установка времени таймера
@@ -53,8 +54,9 @@ void setup()
 void loop()
 {
 	if (hmState == 0) {
-		lcd.setCursor(0, 1); //Устанавливаем курсор на вторую строку и нулевой символ.
-		lcd.print(time.gettime("H:i:s"));
+		//lcd.setCursor(0, 1); //Устанавливаем курсор на вторую строку и нулевой символ.
+		//lcd.print(time.gettime("H:i:s"));
+		lcdPrint(time.gettime("H:i:s"), 0, 1);
 	}
 
 
@@ -78,8 +80,9 @@ void pmctrl() {
 			digitalWrite(pinPump, HIGH); //подать высокий уровень на пин помпы для запуска
 
 			if (hmState == 0) {
-				lcd.setCursor(9, 1);
-				lcd.print("on ");
+				//lcd.setCursor(9, 1);
+				//lcd.print("on ");
+				lcdPrint("on ", 9, 1);
 			}
 
 		}
@@ -87,8 +90,9 @@ void pmctrl() {
 			digitalWrite(pinPump, LOW);//подать низкий уровень на пин помпы для останова
 
 			if (hmState == 0) {
-				lcd.setCursor(9, 1);
-				lcd.print("off");
+				//lcd.setCursor(9, 1);
+				//lcd.print("off");
+				lcdPrint("off", 9, 1);
 			}
 		}
 	}
@@ -97,8 +101,9 @@ void pmctrl() {
 			digitalWrite(pinPump, LOW);//подать низкий уровень на пин помпы для останова
 
 			if (hmState == 0) {
-				lcd.setCursor(9, 1);
-				lcd.print("ovf");
+				//lcd.setCursor(9, 1);
+				//lcd.print("ovf");
+				lcdPrint("ovr",9,1);
 			}
 		}
 	}
@@ -109,7 +114,7 @@ void ltgctrl() {
 	if (time.Hours > 3 && digitalRead(pinLight) == HIGH) {
 		if (lightChatter >= lightCTreshold) {
 			lightChatter = 0; //обнулить счетчик дребезга датчика освещения
-			digitalWrite(pinRelay, LOW) //открыть реле для включения освещения
+			digitalWrite(pinRelay, LOW); //открыть реле для включения освещения
 		}
 		else {
 			lightChatter += 1; //увеличить счетчик дребезга датчика освещения - максимум 60 секунд
@@ -145,7 +150,7 @@ void hmctrl() {
 	delay(1000);
 }
 
-void lcdPrint(char t, int x, int y) {
+void lcdPrint(String t, int x, int y) {
 	lcd.setCursor(x, y);
 	lcd.print(t);
 }
