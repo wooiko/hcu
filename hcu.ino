@@ -19,17 +19,20 @@ int pinOverflow = 4; //датчик перелива в системе
 int pinLight = 6; //датчик освещенности
 int pinRelay = 7; // реле освещенности
 
-int minutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 5, 10, 15, 20, 30
-int secondPeriod = 10; // время работы помпы, секунд. от 1 до 60
-int lightChatter = 0; //счетчик дребезга датчика освещенности
-int lightCTreshold = 10; //порог счетчика дребезга датчика освещенности
-bool runPump = false;//признак запуска насоса
+int lgtChatterOn = 0; //счетчик дребезга включения датчика освещенности
+int lgtChatterOff = 0; //счетчик дребезга выключения датчика освещенности
+int lgtTresholdOn = 10; //порог счетчика дребезга датчика освещенности, включение
+int lgtTresholdOff = 10; //порог счетчика дребезга датчика освещенности, отключение 
+
+int wpMinutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
+int wpSecondPeriod = 10; // время работы помпы, секунд. от 1 до 60
+//bool runPump = false;//признак запуска насоса
 
 
 const int pinY = 0; // Потенциометр оси Y подключен к аналоговому входу 0
 const int pinX = 1; //Потенциометр оси X подключен к аналоговому входу 1
 const int pinZ = 13; // Кнопка подключена к цифровому выводу 13
-float hmstepSize = (float)180 / 1024; // Вычисляем шаг. градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
+float hmStepSize = (float)180 / 1024; // Вычисляем шаг. градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
 int hmState = 0; // режим работы манипулятора: 0-отключен, 1-показ параметров, 2-программирование
 
 void setup()
@@ -76,7 +79,7 @@ void loop()
 void pmctrl() {
 	//функцяи управления помпой
 	if (digitalRead(pinOverflow) == HIGH) {//если не сработал датчик перелива
-		if (time.minutes % minutePeriod == 0 && time.seconds < secondPeriod) { //если выполняется условие запуска помпы по времени
+		if (time.minutes % wpMinutePeriod == 0 && time.seconds < wpSecondPeriod) { //если выполняется условие запуска помпы по времени
 			digitalWrite(pinPump, HIGH); //подать высокий уровень на пин помпы для запуска
 
 			if (hmState == 0) {
@@ -112,17 +115,22 @@ void pmctrl() {
 void ltgctrl() {
 	//функцяи управления подсветкой
 	if (time.Hours > 3 && digitalRead(pinLight) == HIGH) {
-		if (lightChatter >= lightCTreshold) {
-			lightChatter = 0; //обнулить счетчик дребезга датчика освещения
+		if (lgtChatterOn >= lgtTresholdOn) {
+			lgtChatterOn = 0; //обнулить счетчик дребезга датчика освещения
 			digitalWrite(pinRelay, LOW); //открыть реле для включения освещения
 		}
 		else {
-			lightChatter += 1; //увеличить счетчик дребезга датчика освещения - максимум 60 секунд
+			lgtChatterOn += 1; //увеличить счетчик дребезга датчика освещения на включение
 		}
 	}
 	else {
-		// lightChatter = 0; //сбросить счетчик дребезга датчика освещения
-		digitalWrite(pinRelay, HIGH); //закрыть реле, отключить освещение
+		if (lgtChatterOff >= lgtTresholdOff) {
+			lgtChatterOff = 0; //обнулить счетчик дребезга датчика освещения
+			digitalWrite(pinRelay, HIGH); //закрыть реле, отключить освещение
+		}
+		else {
+			lgtChatterOff += 1; //увеличить счетчик дребезга датчика освещения на отлючение
+		}
 	}
 }
 
@@ -134,8 +142,8 @@ void hmctrl() {
 	int yVal = analogRead(pinY); // Задаем переменную yVal для считывания показаний аналогового значения
 	int xVal = analogRead(pinX); //Аналогично xVal
 
-	float yAngle = yVal * hmstepSize; // Переводим выходные данные yVal в угол наклона джойстика (от 0 до 180)
-	float xAngle = xVal * hmstepSize; // Аналогично xVal
+	float yAngle = yVal * hmStepSize; // Переводим выходные данные yVal в угол наклона джойстика (от 0 до 180)
+	float xAngle = xVal * hmStepSize; // Аналогично xVal
 
 	boolean isClicked = digitalRead(pinZ); // Считываем не было ли нажатия на джойстик
 
