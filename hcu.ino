@@ -1,28 +1,29 @@
 /*
    Hydrocontrol
    Creation date: 01.02.2019
-   Current version: v.2.1.1
-   Modification date: 25.02.2019
+   Current version: v.2.1.2
+   Modification date: 26.02.2019
    Autor: Wooiko
 */
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <iarduino_RTC.h>
+#include <Chrono.h>
 
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Устанавливаем дисплей
 iarduino_RTC time(RTC_DS1302, 8, 10, 9); //Инициализация часов
 
-char hcuVersion[14] = "HCU v.2.1.1"; //int pinPump = 2;//насос - поврежден транзистор?
+char hcuVersion[14] = "HCU v.2.1.4"; //int pinPump = 2;//насос - поврежден транзистор?
 int pinPump = 3; //насос
 int pinOverflow = 4; //датчик перелива в системе
 int pinLight = 6; //датчик освещенности
 int pinRelay = 7; // реле освещенности
 
-int lgtChatterOn = 0; //счетчик дребезга включения датчика освещенности
-int lgtChatterOff = 0; //счетчик дребезга выключения датчика освещенности
-int lgtTresholdOn = 10; //порог счетчика дребезга датчика освещенности, включение
-int lgtTresholdOff = 10; //порог счетчика дребезга датчика освещенности, отключение 
+unsigned lgtTresholdOn = 300; //порог счетчика дребезга датчика освещенности, включение, секунд
+unsigned lgtTresholdOff = 300; //порог счетчика дребезга датчика освещенности, отключение, секунд
+Chrono  lgtChronoOn(Chrono::SECONDS);
+Chrono  lgtChronoOff(Chrono::SECONDS);
 
 int wpMinutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
 int wpSecondPeriod = 10; // время работы помпы, секунд. от 1 до 60
@@ -41,17 +42,22 @@ void setup()
 
 	lcd.init();
 	lcd.backlight(); //Включаем подсветку дисплея
-	//lcd.print(hcuVersion);
 	lcdPrint(hcuVersion, 0, 0);
 
 	time.begin(); //инициализация таймера
-	//time.settime(0, 38, 21, 11, 2, 19, 1); //установка времени таймера
+	//time.settime(0, 28, 11, 27, 2, 19, 3); //установка времени таймера
 	//time.period(1);
 
 	pinMode(pinPump, OUTPUT); //задание режима работы пина помпы
 	pinMode(pinRelay, OUTPUT); //задание режима работы пина реле
 	pinMode(pinLight, INPUT); //задание режима работы пина освещенности
 	pinMode(pinOverflow, INPUT); //задание режима работы пина перелива
+
+	digitalWrite(pinRelay, HIGH); //отключить освещение
+	digitalWrite(pinPump, LOW); //выключить помпу
+
+	lgtChronoOn.stop(); //остановить таймер задержки включения освещения
+	lgtChronoOff.stop(); //остановить таймер задержки отключения освещения
 }
 
 void loop()
@@ -59,12 +65,19 @@ void loop()
 	if (hmState == 0) {
 		//lcd.setCursor(0, 1); //Устанавливаем курсор на вторую строку и нулевой символ.
 		//lcd.print(time.gettime("H:i:s"));
-		lcdPrint(time.gettime("H:i:s"), 0, 1);
+		switch (hmState) {
+		case 0:
+			lcdPrint(time.gettime("H:i:s"), 0, 1);
+			break;
+		case 1:
+
+			break;
+		case 2:
+
+			break;
+		}
 	}
-
-
 	delay(100);
-
 	//управление помпой
 	pmctrl();
 
@@ -80,33 +93,60 @@ void pmctrl() {
 	//функцяи управления помпой
 	if (digitalRead(pinOverflow) == HIGH) {//если не сработал датчик перелива
 		if (time.minutes % wpMinutePeriod == 0 && time.seconds < wpSecondPeriod) { //если выполняется условие запуска помпы по времени
-			digitalWrite(pinPump, HIGH); //подать высокий уровень на пин помпы для запуска
+			digitalWrite(pinPump, HIGH); //включить помпу
 
 			if (hmState == 0) {
-				//lcd.setCursor(9, 1);
-				//lcd.print("on ");
-				lcdPrint("on ", 9, 1);
-			}
+				switch (hmState) {
+				case 0:
+					lcdPrint("on ", 9, 1);
+					break;
+				case 1:
 
+					break;
+				case 2:
+
+					break;
+
+				}
+
+			}
 		}
 		else { //в противном случае отключить помпу
-			digitalWrite(pinPump, LOW);//подать низкий уровень на пин помпы для останова
+			digitalWrite(pinPump, LOW); //выключить помпу
 
 			if (hmState == 0) {
-				//lcd.setCursor(9, 1);
-				//lcd.print("off");
-				lcdPrint("off", 9, 1);
+				switch (hmState) {
+				case 0:
+					lcdPrint("off", 9, 1);
+					break;
+				case 1:
+
+					break;
+				case 2:
+
+					break;
+
+				}
 			}
 		}
 	}
 	else {
 		{ //в противном случае отключить помпу
-			digitalWrite(pinPump, LOW);//подать низкий уровень на пин помпы для останова
+			digitalWrite(pinPump, LOW); //выключить помпу
 
 			if (hmState == 0) {
-				//lcd.setCursor(9, 1);
-				//lcd.print("ovf");
-				lcdPrint("ovr",9,1);
+				switch (hmState) {
+				case 0:
+					lcdPrint("ovr", 9, 1);
+					break;
+				case 1:
+
+					break;
+				case 2:
+
+					break;
+
+				}
 			}
 		}
 	}
@@ -115,21 +155,23 @@ void pmctrl() {
 void ltgctrl() {
 	//функцяи управления подсветкой
 	if (time.Hours > 3 && digitalRead(pinLight) == HIGH) {
-		if (lgtChatterOn >= lgtTresholdOn) {
-			lgtChatterOn = 0; //обнулить счетчик дребезга датчика освещения
-			digitalWrite(pinRelay, LOW); //открыть реле для включения освещения
+		if (!lgtChronoOn.isRunning()) {
+			lgtChronoOn.restart();
+			lgtChronoOff.stop();
 		}
-		else {
-			lgtChatterOn += 1; //увеличить счетчик дребезга датчика освещения на включение
+		if (lgtChronoOn.hasPassed(lgtTresholdOn)) {
+			lgtChronoOn.stop();
+			digitalWrite(pinRelay, LOW); //открыть реле для включения освещения
 		}
 	}
 	else {
-		if (lgtChatterOff >= lgtTresholdOff) {
-			lgtChatterOff = 0; //обнулить счетчик дребезга датчика освещения
-			digitalWrite(pinRelay, HIGH); //закрыть реле, отключить освещение
+		if (!lgtChronoOff.isRunning()) {
+			lgtChronoOff.restart();
+			lgtChronoOn.stop();
 		}
-		else {
-			lgtChatterOff += 1; //увеличить счетчик дребезга датчика освещения на отлючение
+		if (lgtChronoOff.hasPassed(lgtTresholdOff)) {
+			lgtChronoOff.stop();
+			digitalWrite(pinRelay, HIGH);
 		}
 	}
 }
