@@ -6,6 +6,7 @@
    Autor: Wooiko
 */
 
+#include <neotimer.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <iarduino_RTC.h>
@@ -19,6 +20,9 @@ int pinPump = 3; //насос
 int pinOverflow = 4; //датчик перелива в системе
 int pinLight = 6; //датчик освещенности
 int pinRelay = 7; // реле освещенности
+const int pinY = 0; // Потенциометр оси Y подключен к аналоговому входу 0
+const int pinX = 1; //Потенциометр оси X подключен к аналоговому входу 1
+const int pinZ = 13; // Кнопка подключена к цифровому выводу 13
 
 unsigned lgtTresholdOn = 300; //порог счетчика дребезга датчика освещенности, включение, секунд
 unsigned lgtTresholdOff = 300; //порог счетчика дребезга датчика освещенности, отключение, секунд
@@ -27,18 +31,20 @@ Chrono  lgtChronoOff(Chrono::SECONDS);
 
 int wpMinutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
 int wpSecondPeriod = 10; // время работы помпы, секунд. от 1 до 60
-//bool runPump = false;//признак запуска насоса
 
-
-const int pinY = 0; // Потенциометр оси Y подключен к аналоговому входу 0
-const int pinX = 1; //Потенциометр оси X подключен к аналоговому входу 1
-const int pinZ = 13; // Кнопка подключена к цифровому выводу 13
 float hmStepSize = (float)180 / 1024; // Вычисляем шаг. градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
 int hmState = 0; // режим работы манипулятора: 0-отключен, 1-показ параметров, 2-программирование
+Chrono hmClickPeriod(Chrono::MILLIS);
+Neotimer neo;
+
+//Chrono hmWDog(Chrono::MILLIS);
+//int hmPeriodCount = 0; //счетчик периодов нажатия манипулятора
+int hmParamWatchPeriod = 5; // время клика манипулятора для просмотра заданных параметров, кратно 100 мс
+int hmReturnStatePeriod = 10; //время возврата в исходный режим после работы манипулятором, с
 
 void setup()
 {
-	//Serial.begin(9600); // устанавливаем скорость передачи данных с модулей в 9600 бод
+	Serial.begin(9600); // устанавливаем скорость передачи данных с модулей в 9600 бод
 
 	lcd.init();
 	lcd.backlight(); //Включаем подсветку дисплея
@@ -62,31 +68,30 @@ void setup()
 
 void loop()
 {
-	if (hmState == 0) {
-		//lcd.setCursor(0, 1); //Устанавливаем курсор на вторую строку и нулевой символ.
-		//lcd.print(time.gettime("H:i:s"));
-		switch (hmState) {
-		case 0:
-			lcdPrint(time.gettime("H:i:s"), 0, 1);
-			break;
-		case 1:
-
-			break;
-		case 2:
-
-			break;
-		}
+	switch (hmState) {
+	case 0:
+		lcdPrint(time.gettime("H:i:s"), 0, 1);
+		break;
+	case 1:
+		lcdPrint("paramite1", 0, 1);
+		break;
+	case 2:
+		lcdPrint("paramite2", 0, 1);
+		break;
 	}
-	delay(100);
+	//delay(100);
 	//управление помпой
 	pmctrl();
 
-	delay(100);
+	//delay(100);
 
 	//управление подсветкой
 	ltgctrl();
 
-	delay(100);
+	//delay(100);
+	//проверка нажатия джойстика
+	hmchkclk();
+	//hmctrl();
 }
 
 void pmctrl() {
@@ -95,38 +100,33 @@ void pmctrl() {
 		if (time.minutes % wpMinutePeriod == 0 && time.seconds < wpSecondPeriod) { //если выполняется условие запуска помпы по времени
 			digitalWrite(pinPump, HIGH); //включить помпу
 
-			if (hmState == 0) {
-				switch (hmState) {
-				case 0:
-					lcdPrint("on ", 9, 1);
-					break;
-				case 1:
-
-					break;
-				case 2:
-
-					break;
-
-				}
+			switch (hmState) {
+			case 0:
+				lcdPrint("on ", 9, 1);
+				break;
+			case 1:
+				lcdPrint("st1", 9, 1);
+				break;
+			case 2:
+				lcdPrint("st2", 9, 1);
+				break;
 
 			}
 		}
 		else { //в противном случае отключить помпу
 			digitalWrite(pinPump, LOW); //выключить помпу
 
-			if (hmState == 0) {
-				switch (hmState) {
-				case 0:
-					lcdPrint("off", 9, 1);
-					break;
-				case 1:
+			switch (hmState) {
+			case 0:
+				lcdPrint("off", 9, 1);
+				break;
+			case 1:
+				lcdPrint("st1", 9, 1);
+				break;
+			case 2:
+				lcdPrint("st2", 9, 1);
+				break;
 
-					break;
-				case 2:
-
-					break;
-
-				}
 			}
 		}
 	}
@@ -134,7 +134,6 @@ void pmctrl() {
 		{ //в противном случае отключить помпу
 			digitalWrite(pinPump, LOW); //выключить помпу
 
-			if (hmState == 0) {
 				switch (hmState) {
 				case 0:
 					lcdPrint("ovr", 9, 1);
@@ -147,7 +146,6 @@ void pmctrl() {
 					break;
 
 				}
-			}
 		}
 	}
 }
@@ -198,6 +196,24 @@ void hmctrl() {
 		Serial.println("Clicked");
 	}
 	delay(1000);
+}
+
+void hmchkclk() {
+	if (digitalRead(pinZ) == true) {
+		if (!hmClickPeriod.isRunning()) {
+			hmClickPeriod.restart();
+			hmState = 1;
+		}
+		if (hmClickPeriod.hasPassed(1000)) {
+			hmState = 2;
+			hmClickPeriod.resume();
+		}
+	}
+	else {
+		hmState = 0;
+	}
+	Serial.println(hmState);
+
 }
 
 void lcdPrint(String t, int x, int y) {
