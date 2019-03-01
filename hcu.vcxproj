@@ -85,7 +85,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\hcu;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\libraries\LiquidCrystal_I2C;$(ProjectDir)..\libraries\iarduino_RTC\src;$(ProjectDir)..\libraries\arduino_176729;$(ProjectDir)..\libraries\Neotimer\src;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\libraries;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\hcu;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\libraries\LiquidCrystal_I2C;$(ProjectDir)..\libraries\iarduino_RTC\src;$(ProjectDir)..\libraries\arduino_176729;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\libraries;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.hcu.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=10808;ARDUINO_AVR_NANO;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -98,13 +98,81 @@
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring_pulse.S" />
+    <None Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\library.properties" />
+    <None Include="..\libraries\arduino_176729\library.properties" />
+    <None Include="..\libraries\iarduino_RTC\library.properties" />
+    <None Include="..\libraries\LiquidCrystal_I2C\library.json" />
+    <None Include="..\libraries\LiquidCrystal_I2C\library.properties" />
     <None Include="hcu.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Arduino.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\binary.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Client.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial_private.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\IPAddress.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\new.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\PluggableUSB.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Print.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Printable.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Server.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Stream.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Udp.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\USBAPI.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\USBCore.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\USBDesc.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WCharacter.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring_private.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.h" />
+    <ClInclude Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs\pins_arduino.h" />
+    <ClInclude Include="..\libraries\arduino_176729\Chrono.h" />
+    <ClInclude Include="..\libraries\arduino_176729\LightChrono.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\iarduino_RTC.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\iarduino_RTC_DS1302.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\iarduino_RTC_DS1307.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\iarduino_RTC_DS3231.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\iarduino_RTC_I2C.h" />
+    <ClInclude Include="..\libraries\iarduino_RTC\src\memorysaver.h" />
+    <ClInclude Include="..\libraries\LiquidCrystal_I2C\LiquidCrystal_I2C.h" />
     <ClInclude Include="__vm\.hcu.vsarduino.h" />
     <ClInclude Include="__vm\.hcu_2.1.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\abi.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\CDC.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial0.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial1.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial2.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial3.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\IPAddress.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\main.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\new.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\PluggableUSB.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Print.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Stream.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Tone.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\USBCore.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WMath.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.c" />
+    <ClCompile Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.cpp" />
+    <ClCompile Include="..\libraries\arduino_176729\Chrono.cpp" />
+    <ClCompile Include="..\libraries\arduino_176729\LightChrono.cpp" />
+    <ClCompile Include="..\libraries\iarduino_RTC\src\iarduino_RTC.cpp" />
+    <ClCompile Include="..\libraries\LiquidCrystal_I2C\LiquidCrystal_I2C.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\keywords.txt" />
+    <Text Include="..\libraries\arduino_176729\keywords.txt" />
+    <Text Include="..\libraries\iarduino_RTC\keywords.txt" />
+    <Text Include="..\libraries\LiquidCrystal_I2C\keywords.txt" />
   </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>

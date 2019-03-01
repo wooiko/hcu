@@ -6,7 +6,6 @@
    Autor: Wooiko
 */
 
-#include <neotimer.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <iarduino_RTC.h>
@@ -16,31 +15,28 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Устанавливаем дисплей
 iarduino_RTC time(RTC_DS1302, 8, 10, 9); //Инициализация часов
 
 char hcuVersion[14] = "HCU v.2.1.4"; //int pinPump = 2;//насос - поврежден транзистор?
-int pinPump = 3; //насос
-int pinOverflow = 4; //датчик перелива в системе
-int pinLight = 6; //датчик освещенности
-int pinRelay = 7; // реле освещенности
-const int pinY = 0; // Потенциометр оси Y подключен к аналоговому входу 0
-const int pinX = 1; //Потенциометр оси X подключен к аналоговому входу 1
-const int pinZ = 13; // Кнопка подключена к цифровому выводу 13
+int pinPump = 3; //пин насоса
+int pinOverflow = 4; //пин датчика перелива в системе
+int pinLight = 6; //пин датчика освещенности
+int pinRelay = 7; // пин реле освещенности
+const int pinY = 0; // пин манипулятора оси Y, подключен к аналоговому входу 0
+const int pinX = 1; //пин манипулятора оси X, подключен к аналоговому входу 1
+const int pinZ = 13; // пин манипулятора кнопки, подключен к цифровому выводу 13
 
 unsigned lgtTresholdOn = 300; //порог счетчика дребезга датчика освещенности, включение, секунд
 unsigned lgtTresholdOff = 300; //порог счетчика дребезга датчика освещенности, отключение, секунд
-Chrono  lgtChronoOn(Chrono::SECONDS);
-Chrono  lgtChronoOff(Chrono::SECONDS);
+Chrono  lgtChronoOn(Chrono::SECONDS); //хронометр включения освещения
+Chrono  lgtChronoOff(Chrono::SECONDS); //хронометр выключения освещения
 
 int wpMinutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
 int wpSecondPeriod = 10; // время работы помпы, секунд. от 1 до 60
 
-float hmStepSize = (float)180 / 1024; // Вычисляем шаг. градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
+float hmStepSize = (float)180 / 1024; // вычисляем шаг градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
 int hmState = 0; // режим работы манипулятора: 0-отключен, 1-показ параметров, 2-программирование
-Chrono hmClickPeriod(Chrono::MILLIS);
-Neotimer neo;
+Chrono hmChronoPeriod(Chrono::MILLIS); //хронометр манипулятора
 
-//Chrono hmWDog(Chrono::MILLIS);
-//int hmPeriodCount = 0; //счетчик периодов нажатия манипулятора
 int hmParamWatchPeriod = 5; // время клика манипулятора для просмотра заданных параметров, кратно 100 мс
-int hmReturnStatePeriod = 10; //время возврата в исходный режим после работы манипулятором, с
+int hmReturnPeriod = 3; //время возврата в исходный режим после работы манипулятором, с
 
 void setup()
 {
@@ -64,6 +60,8 @@ void setup()
 
 	lgtChronoOn.stop(); //остановить таймер задержки включения освещения
 	lgtChronoOff.stop(); //остановить таймер задержки отключения освещения
+
+	hmChronoPeriod.stop(); //остановить хронометр манипулятора
 }
 
 void loop()
@@ -73,10 +71,10 @@ void loop()
 		lcdPrint(time.gettime("H:i:s"), 0, 1);
 		break;
 	case 1:
-		lcdPrint("paramite1", 0, 1);
+		lcdPrint(time.gettime("H:i:s"), 0, 1);
 		break;
 	case 2:
-		lcdPrint("paramite2", 0, 1);
+		lcdPrint(time.gettime("H:i:s"), 0, 1);
 		break;
 	}
 	//delay(100);
@@ -110,7 +108,6 @@ void pmctrl() {
 			case 2:
 				lcdPrint("st2", 9, 1);
 				break;
-
 			}
 		}
 		else { //в противном случае отключить помпу
@@ -126,7 +123,6 @@ void pmctrl() {
 			case 2:
 				lcdPrint("st2", 9, 1);
 				break;
-
 			}
 		}
 	}
@@ -134,18 +130,18 @@ void pmctrl() {
 		{ //в противном случае отключить помпу
 			digitalWrite(pinPump, LOW); //выключить помпу
 
-				switch (hmState) {
-				case 0:
-					lcdPrint("ovr", 9, 1);
-					break;
-				case 1:
+			switch (hmState) {
+			case 0:
+				lcdPrint("ovr", 9, 1);
+				break;
+			case 1:
 
-					break;
-				case 2:
+				break;
+			case 2:
 
-					break;
+				break;
 
-				}
+			}
 		}
 	}
 }
@@ -200,21 +196,27 @@ void hmctrl() {
 
 void hmchkclk() {
 	if (digitalRead(pinZ) == true) {
-		if (!hmClickPeriod.isRunning()) {
-			hmClickPeriod.restart();
+		if (!hmChronoPeriod.isRunning() || (hmChronoPeriod.isRunning() && hmState == 0)) {
+			hmChronoPeriod.restart();
 			hmState = 1;
+			Serial.println("Clicked");
 		}
-		if (hmClickPeriod.hasPassed(1000)) {
+		if (hmChronoPeriod.hasPassed(hmParamWatchPeriod * 100)) {
 			hmState = 2;
-			hmClickPeriod.resume();
+			hmChronoPeriod.resume();
+			Serial.println("Passed 3 s");
 		}
 	}
 	else {
-		hmState = 0;
+		if (hmChronoPeriod.hasPassed(hmReturnPeriod * 1000)) {
+			hmState = 0;
+			//hmChronoPeriod.stop();
+			Serial.println("Returned");
+		}
 	}
-	Serial.println(hmState);
-
 }
+
+
 
 void lcdPrint(String t, int x, int y) {
 	lcd.setCursor(x, y);
