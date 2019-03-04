@@ -6,6 +6,7 @@
    Autor: Wooiko
 */
 
+
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <iarduino_RTC.h>
@@ -14,29 +15,31 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Устанавливаем дисплей
 iarduino_RTC time(RTC_DS1302, 8, 10, 9); //Инициализация часов
 
-char hcuVersion[14] = "HCU v.2.1.4"; //int pinPump = 2;//насос - поврежден транзистор?
-int pinPump = 3; //пин насоса
-int pinOverflow = 4; //пин датчика перелива в системе
-int pinLight = 6; //пин датчика освещенности
-int pinRelay = 7; // пин реле освещенности
-const int pinY = 0; // пин манипулятора оси Y, подключен к аналоговому входу 0
-const int pinX = 1; //пин манипулятора оси X, подключен к аналоговому входу 1
-const int pinZ = 13; // пин манипулятора кнопки, подключен к цифровому выводу 13
+const char hcuVersion[14] = "HCU v.2.1.5"; 
+const int pinPump = 3; //пин насоса
+const int pinOverflow = 4; //пин датчика перелива в системе
+const int pinLight = 6; //пин датчика освещенности
+const int pinHVRelay = 7; // пин реле высокого напряжения
+const int pinJCUMoveY = 0; // пин джойстика оси Y, подключен к аналоговому входу 0
+const int pinJCUMoveX = 1; //пин джойстика оси X, подключен к аналоговому входу 1
+const int pinJCUMoveZ = 13; // пин джойстика кнопки, подключен к цифровому выводу 13
 
-unsigned lgtTresholdOn = 300; //порог счетчика дребезга датчика освещенности, включение, секунд
-unsigned lgtTresholdOff = 300; //порог счетчика дребезга датчика освещенности, отключение, секунд
-Chrono  lgtChronoOn(Chrono::SECONDS); //хронометр включения освещения
-Chrono  lgtChronoOff(Chrono::SECONDS); //хронометр выключения освещения
+unsigned lghtTresholdOn = 300; //порог счетчика дребезга датчика освещенности, включение, секунд
+unsigned lghtTresholdOff = 300; //порог счетчика дребезга датчика освещенности, отключение, секунд
+Chrono  lghtChronoOn(Chrono::SECONDS); //хронометр включения освещения
+Chrono  lghtChronoOff(Chrono::SECONDS); //хронометр выключения освещения
 
 int wpMinutePeriod = 2; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
 int wpSecondPeriod = 10; // время работы помпы, секунд. от 1 до 60
 
-float hmStepSize = (float)180 / 1024; // вычисляем шаг градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
-int hmState = 0; // режим работы манипулятора: 0-отключен, 1-показ параметров, 2-программирование
-Chrono hmChronoPeriod(Chrono::MILLIS); //хронометр манипулятора
+//float jcuStepSize = (float)180 / 1024; // вычисляем шаг градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
+int jcuState = 0; // режим работы джойстика: 0-отключен, 1-показ параметров, 2-программирование
+Chrono jcuChronoPeriod(Chrono::MILLIS); //хронометр джойстика
 
-int hmParamWatchPeriod = 5; // время клика манипулятора для просмотра заданных параметров, кратно 100 мс
-int hmReturnPeriod = 3; //время возврата в исходный режим после работы манипулятором, с
+int jcuParamWatchPeriod = 5; // время клика джойстика для просмотра заданных параметров, кратно 100 мс
+int jcuReturnPeriod = 3; //время возврата в исходный режим после работы джойстиком
+int yVal; //для считывания показаний джойстика по оси Y (0, 512, 1203)
+int xVal; //для считывания показаний джойстика по оси X (0, 512, 1203)
 
 void setup()
 {
@@ -51,22 +54,22 @@ void setup()
 	//time.period(1);
 
 	pinMode(pinPump, OUTPUT); //задание режима работы пина помпы
-	pinMode(pinRelay, OUTPUT); //задание режима работы пина реле
+	pinMode(pinHVRelay, OUTPUT); //задание режима работы пина реле
 	pinMode(pinLight, INPUT); //задание режима работы пина освещенности
 	pinMode(pinOverflow, INPUT); //задание режима работы пина перелива
 
-	digitalWrite(pinRelay, HIGH); //отключить освещение
+	digitalWrite(pinHVRelay, HIGH); //отключить освещение
 	digitalWrite(pinPump, LOW); //выключить помпу
 
-	lgtChronoOn.stop(); //остановить таймер задержки включения освещения
-	lgtChronoOff.stop(); //остановить таймер задержки отключения освещения
+	lghtChronoOn.stop(); //остановить таймер задержки включения освещения
+	lghtChronoOff.stop(); //остановить таймер задержки отключения освещения
 
-	hmChronoPeriod.stop(); //остановить хронометр манипулятора
+	jcuChronoPeriod.stop(); //остановить хронометр манипулятора
 }
 
 void loop()
 {
-	switch (hmState) {
+	switch (jcuState) {
 	case 0:
 		lcdPrint(time.gettime("H:i:s"), 0, 1);
 		break;
@@ -88,8 +91,9 @@ void loop()
 
 	//delay(100);
 	//проверка нажатия джойстика
-	hmchkclk();
-	//hmctrl();
+	jcuchkclk();
+	
+	jcuchkmv();
 }
 
 void pmctrl() {
@@ -98,7 +102,7 @@ void pmctrl() {
 		if (time.minutes % wpMinutePeriod == 0 && time.seconds < wpSecondPeriod) { //если выполняется условие запуска помпы по времени
 			digitalWrite(pinPump, HIGH); //включить помпу
 
-			switch (hmState) {
+			switch (jcuState) {
 			case 0:
 				lcdPrint("on ", 9, 1);
 				break;
@@ -113,7 +117,7 @@ void pmctrl() {
 		else { //в противном случае отключить помпу
 			digitalWrite(pinPump, LOW); //выключить помпу
 
-			switch (hmState) {
+			switch (jcuState) {
 			case 0:
 				lcdPrint("off", 9, 1);
 				break;
@@ -130,7 +134,7 @@ void pmctrl() {
 		{ //в противном случае отключить помпу
 			digitalWrite(pinPump, LOW); //выключить помпу
 
-			switch (hmState) {
+			switch (jcuState) {
 			case 0:
 				lcdPrint("ovr", 9, 1);
 				break;
@@ -149,74 +153,64 @@ void pmctrl() {
 void ltgctrl() {
 	//функцяи управления подсветкой
 	if (time.Hours > 3 && digitalRead(pinLight) == HIGH) {
-		if (!lgtChronoOn.isRunning()) {
-			lgtChronoOn.restart();
-			lgtChronoOff.stop();
+		if (!lghtChronoOn.isRunning()) {
+			lghtChronoOn.restart();
+			lghtChronoOff.stop();
 		}
-		if (lgtChronoOn.hasPassed(lgtTresholdOn)) {
-			lgtChronoOn.stop();
-			digitalWrite(pinRelay, LOW); //открыть реле для включения освещения
-		}
-	}
-	else {
-		if (!lgtChronoOff.isRunning()) {
-			lgtChronoOff.restart();
-			lgtChronoOn.stop();
-		}
-		if (lgtChronoOff.hasPassed(lgtTresholdOff)) {
-			lgtChronoOff.stop();
-			digitalWrite(pinRelay, HIGH);
-		}
-	}
-}
-
-void hmctrl() {
-	//функция управления манипулятором
-
-
-
-	int yVal = analogRead(pinY); // Задаем переменную yVal для считывания показаний аналогового значения
-	int xVal = analogRead(pinX); //Аналогично xVal
-
-	float yAngle = yVal * hmStepSize; // Переводим выходные данные yVal в угол наклона джойстика (от 0 до 180)
-	float xAngle = xVal * hmStepSize; // Аналогично xVal
-
-	boolean isClicked = digitalRead(pinZ); // Считываем не было ли нажатия на джойстик
-
-	Serial.print("Horisontal angle = "); // Выводим текст 
-	Serial.println(xAngle);              // Выводим значение угла 
-	Serial.print("Vertical angle = ");
-	Serial.println(yAngle);
-	if (isClicked)
-	{
-		Serial.println("Clicked");
-	}
-	delay(1000);
-}
-
-void hmchkclk() {
-	if (digitalRead(pinZ) == true) {
-		if (!hmChronoPeriod.isRunning() || (hmChronoPeriod.isRunning() && hmState == 0)) {
-			hmChronoPeriod.restart();
-			hmState = 1;
-			Serial.println("Clicked");
-		}
-		if (hmChronoPeriod.hasPassed(hmParamWatchPeriod * 100)) {
-			hmState = 2;
-			hmChronoPeriod.resume();
-			Serial.println("Passed 3 s");
+		if (lghtChronoOn.hasPassed(lghtTresholdOn)) {
+			lghtChronoOn.stop();
+			digitalWrite(pinHVRelay, LOW); //открыть реле для включения освещения
 		}
 	}
 	else {
-		if (hmChronoPeriod.hasPassed(hmReturnPeriod * 1000)) {
-			hmState = 0;
-			//hmChronoPeriod.stop();
-			Serial.println("Returned");
+		if (!lghtChronoOff.isRunning()) {
+			lghtChronoOff.restart();
+			lghtChronoOn.stop();
+		}
+		if (lghtChronoOff.hasPassed(lghtTresholdOff)) {
+			lghtChronoOff.stop();
+			digitalWrite(pinHVRelay, HIGH);
 		}
 	}
 }
 
+void jcuchkclk() {
+	//контроль клика джойстика
 
+	if (digitalRead(pinJCUMoveZ) == true) { //если считывается нажатие джойстика
+		if (!jcuChronoPeriod.isRunning() || (jcuChronoPeriod.isRunning() && jcuState == 0)) { //если счетчик режима работы не запущени или ичетчик режима запущен и состояние равно "в работе (0)"
+			jcuChronoPeriod.restart(); //рестартовать счетчик состояния
+			jcuState = 1; //сразу выставить состояние "просмотр параметров (1)"
+			//Serial.println("Clicked");
+		}
+		if (jcuChronoPeriod.hasPassed(jcuParamWatchPeriod * 100)) { //по завершению цикла, если кнопка не была отпущена
+			jcuState = 2; //выставить состояние "программирование (2)"
+			jcuChronoPeriod.resume(); //продолжить работу счетчика
+			//Serial.println("Passed 3 s");
+		}
+	}
+	else { // если нажатия джойстика не зафиксировано
+		if (jcuChronoPeriod.hasPassed(jcuReturnPeriod * 1000)) { //по прошествию периода
+			jcuState = 0; //выставить состояние "в работе (0)"
+			//jcuChronoPeriod.stop();
+			//Serial.println("Returned");
+		}
+	}
+}
+
+void jcuchkmv() {
+	//контроль наклона джойстика
+
+	yVal = analogRead(pinJCUMoveY); // Задаем переменную yVal для считывания показаний аналогового значения
+	xVal = analogRead(pinJCUMoveX); //Аналогично xVal
+
+	//float yAngle = yVal * jcuStepSize; // Переводим выходные данные yVal в угол наклона джойстика (от 0 до 180)
+	//float xAngle = xVal * jcuStepSize; // Аналогично xVal
+
+	if (yVal < 341 || yVal>682 || yVal < 341 || yVal>682) {//если джойстиr сдвинут более, чем на 30 градусов в любую сторону от 90 градусов
+		jcuChronoPeriod.restart(); //рестартовать счетчик возврата в режим работы
+	}
+}
 
 void lcdPrint(String t, int x, int y) {
 	lcd.setCursor(x, y);
