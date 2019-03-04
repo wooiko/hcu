@@ -38,8 +38,12 @@ Chrono jcuChronoPeriod(Chrono::MILLIS); //хронометр джойстика
 
 int jcuParamWatchPeriod = 5; // время клика джойстика для просмотра заданных параметров, кратно 100 мс
 int jcuReturnPeriod = 3; //время возврата в исходный режим после работы джойстиком
+
 int yVal; //для считывания показаний джойстика по оси Y (0, 512, 1203)
 int xVal; //для считывания показаний джойстика по оси X (0, 512, 1203)
+
+int jcuXDir = 0; //направление и шаг сдвига джойстика по оси X
+int jcuYDir = 0; //направление и шаг сдвига джойстика по оси Y
 
 void setup()
 {
@@ -192,6 +196,8 @@ void jcuchkclk() {
 	else { // если нажатия джойстика не зафиксировано
 		if (jcuChronoPeriod.hasPassed(jcuReturnPeriod * 1000)) { //по прошествию периода
 			jcuState = 0; //выставить состояние "в работе (0)"
+			int jcuXDir = 0; //обнулить сдвиг джойстика по оси X
+			int jcuXDir = 0; //обнулить сдвиг джойстика по оси Y
 			//jcuChronoPeriod.stop();
 			//Serial.println("Returned");
 		}
@@ -204,10 +210,7 @@ void jcuchkmv() {
 	yVal = analogRead(pinJCUMoveY); // Задаем переменную yVal для считывания показаний аналогового значения
 	xVal = analogRead(pinJCUMoveX); //Аналогично xVal
 
-	//float yAngle = yVal * jcuStepSize; // Переводим выходные данные yVal в угол наклона джойстика (от 0 до 180)
-	//float xAngle = xVal * jcuStepSize; // Аналогично xVal
-
-	if (yVal < 341 || yVal>682 || yVal < 341 || yVal>682) {//если джойстиr сдвинут более, чем на 30 градусов в любую сторону от 90 градусов
+	if (yVal < 341 || yVal>682 || yVal < 341 || yVal>682) {//если джойстик сдвинут более, чем на 30 градусов в любую сторону от 90 градусов
 		jcuChronoPeriod.restart(); //рестартовать счетчик возврата в режим работы
 	}
 }
