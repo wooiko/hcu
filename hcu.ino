@@ -31,8 +31,9 @@ int lghtOffMinTime = 5; //минимальное значение времени
 Chrono  lghtChronoOn(Chrono::SECONDS); //хронометр включения освещения
 Chrono  lghtChronoOff(Chrono::SECONDS); //хронометр выключения освещения
 
-int wpMinutePeriod = 6; //период срабатывания помпы, минут. определятся кратностью минут в часе. рекомендуется: 2, 5, 10, 15, 20, 30
-int wpSecondPeriod = 15; // время работы помпы, секунд. от 1 до 60
+int wpMinutePeriod = 10; //период полива, минут. определятся количеством минут в часе - от 1 до 59
+//int wpSecondPeriod = 15; // время работы помпы, секунд. от 1 до 60
+int wpHourPeriod = 8; //время начала полива от 0 до 23. определятся количеством часов в сутках - от 1 до 23
 
 //float jcuStepSize = (float)180 / 1024; // вычисляем шаг градусы / на градацию; угол поворота джойстика 180 градусов, АЦП выдает значения от 0 до 1023, всего 1024 градации
 int jcuState = 0; // режим работы джойстика: 0-работа, 1-программирование
@@ -99,7 +100,7 @@ void loop()
 void pmctrl() {
   //функцяи управления помпой
   if (digitalRead(pinOverflow) == HIGH) {//если не сработал датчик перелива
-    if (time.minutes % wpMinutePeriod == 0 && time.seconds < wpSecondPeriod) { //если выполняется условие запуска помпы по времени
+    if (time.minutes % wpMinutePeriod == 0 && time.Hours < wpHourPeriod) { //если выполняется условие запуска помпы по времени
       digitalWrite(pinPump, HIGH); //включить помпу
 
       lcdPrint("on ", 13, 0);
