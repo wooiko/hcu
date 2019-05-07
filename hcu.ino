@@ -100,7 +100,7 @@ void loop()
 void pmctrl() {
   //функцяи управления помпой
   if (digitalRead(pinOverflow) == HIGH) {//если не сработал датчик перелива
-    if (time.minutes % wpMinutePeriod == 0 && time.Hours < wpHourPeriod) { //если выполняется условие запуска помпы по времени
+    if (time.Hours % wpHourPeriod == 0 && time.minutes < wpMinutePeriod) { //если выполняется условие запуска помпы по времени
       digitalWrite(pinPump, HIGH); //включить помпу
 
       lcdPrint("on ", 13, 0);
