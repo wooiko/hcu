@@ -17,4 +17,9 @@
   <ItemGroup>
     <None Include="hcu.ino" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.hcu.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
